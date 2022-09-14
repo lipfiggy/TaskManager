@@ -1,12 +1,15 @@
 using TaskManager.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddRazorPages();
+ 
 builder.Services.AddControllersWithViews();
 
 //Add Context to services
-string connectionString = builder.Configuration.GetConnectionString("TaskManagerConnection");
+string connectionString = builder.Configuration.GetConnectionString("LocalConnection");
 builder.Services.AddDbContext<TaskManagerContext>(options => options.UseSqlServer(connectionString));
 
 // Add services to the container.
@@ -25,6 +28,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseAuthentication();;
 
 app.UseAuthorization();
 
