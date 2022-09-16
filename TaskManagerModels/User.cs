@@ -22,8 +22,6 @@ namespace TaskManagerModels
 
         [Required]
         public Role Role { get; set; }
-        public ICollection<Group> GroupsCreated { get; set; }
-        public ICollection<GroupUser> GroupUsers { get; set; }
-        public ICollection<PostUser> PostUsers { get; set; }
+
     }
 }

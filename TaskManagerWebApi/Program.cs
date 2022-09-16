@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManagerWebApi;
+using TaskManagerModels;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 
 builder.Services.AddDbContext<TaskManagerContext>(option => option.UseSqlServer(
-    builder.Configuration.GetConnectionString("LocalConnection")));
+    builder.Configuration.GetConnectionString("TaskManagerConnection")));
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
