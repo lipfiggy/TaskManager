@@ -12,6 +12,7 @@ namespace TaskManagerModels
         [Required]
         public DateTime Created { get; set; }
         public DateTime Deadline { get; set; }
+        public Group Group { get; set; } 
     }
 
     public enum PostStatus
