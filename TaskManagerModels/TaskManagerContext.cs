@@ -14,8 +14,9 @@ namespace TaskManagerModels
         public TaskManagerContext(DbContextOptions<TaskManagerContext> options)
             : base(options)
         {
+
             //Database.EnsureDeleted();
-            Database.EnsureCreated();
+            //Database.EnsureCreated();
 
         }
 
