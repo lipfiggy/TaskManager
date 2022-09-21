@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TaskManagerModels;
 using System.Linq;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TaskManagerWebApi.Controllers
 {
@@ -14,13 +16,20 @@ namespace TaskManagerWebApi.Controllers
 
         public GroupsController(TaskManagerContext context) =>
             _context = context;
-
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<List<Group>>> GetGroups()
         {
-            if (_context.Groups == null)
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            var user = await _context.Users.FindAsync(Guid.Parse(identity.Claims.FirstOrDefault(claim => claim.Type == "Id").Value));
+
+
+            if (user == null)
                 return NotFound();
-            return await _context.Groups.ToListAsync();
+
+            var userGroups = await _context.Groups.Include(x => x.GroupUsers).ThenInclude(x => x.User).Where(x=>x.Id == user.Id).ToListAsync();
+
+            return userGroups;
         }
 
         [HttpGet("{Id}")]

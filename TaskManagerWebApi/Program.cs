@@ -35,7 +35,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddDbContext<TaskManagerContext>(option => option.UseSqlServer(
-    builder.Configuration.GetConnectionString("LocalConnection")));
+    builder.Configuration.GetConnectionString("TaskManagerConnection")));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -56,7 +56,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddAuthorization();
 
 // Add services to the container.

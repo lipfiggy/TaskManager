@@ -9,5 +9,6 @@ namespace TaskManagerModels
         public string Caption { get; set; }
         public string Description { get; set; }
         public ICollection<Post> Posts { get; set; }
+        public ICollection<GroupUser> GroupUsers { get; set; }
     }
 }
