@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using LazyCache;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,27 +12,34 @@ namespace TaskManagerWebApi.Controllers
     public class UsersController : ControllerBase
     {
         private readonly TaskManagerContext _context;
+        private readonly IAppCache _appCache;
 
-        public UsersController(TaskManagerContext context)
+        public UsersController(TaskManagerContext context, IAppCache appCache)
         {
             _context = context;
+            _appCache = appCache;
         }
 
         [Authorize]
         [HttpGet]
         public async Task<ActionResult<User>> GetAuthorizedUser()
         {
-            var identity = HttpContext.User.Identity as ClaimsIdentity;
-            if(identity == null)
+            return await _appCache.GetOrAddAsync<ActionResult<User>>("authorizedUser", async entry =>
             {
-                return BadRequest();
-            }
-            var user = await _context.Users.FindAsync(Guid.Parse(identity.Claims.FirstOrDefault(claim => claim.Type == "Id").Value));
-            if(user == null)
-            {
-                return BadRequest();
-            }
-            return user;
+                var identity = HttpContext.User.Identity as ClaimsIdentity;
+                if (identity == null)
+                {
+                    return BadRequest();
+                }
+                var user = await _context.Users.FindAsync(Guid.Parse(identity.Claims.FirstOrDefault(claim => claim.Type == "Id").Value));
+                if (user == null)
+                {
+                    return BadRequest();
+                }
+
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
+                return Ok(user);
+            });
         }
 
         // GET: api/Users/5
@@ -39,14 +47,18 @@ namespace TaskManagerWebApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(Guid id)
         {
-            var user = await _context.Users.FindAsync(id);
-        
-            if (user == null)
+            return await _appCache.GetOrAddAsync<ActionResult<User>>("user", async entry =>
             {
-                return NotFound();
-            }
-        
-            return user;
+                var user = await _context.Users.FindAsync(id);
+
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30);
+                return Ok(user);
+            });
         }
         
         // PUT: api/Users/5
@@ -73,7 +85,7 @@ namespace TaskManagerWebApi.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        public async Task<ActionResult<User>> RegisterUser(User user)
         {
             if(!ModelState.IsValid)
             {
