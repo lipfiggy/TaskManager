@@ -91,6 +91,7 @@ namespace TaskManagerWebApi.Controllers
             {
                 return BadRequest();
             }
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
         
@@ -113,6 +114,7 @@ namespace TaskManagerWebApi.Controllers
         
             return NoContent();
         }
+
         //
     }
 }

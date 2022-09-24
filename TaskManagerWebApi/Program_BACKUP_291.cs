@@ -26,11 +26,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-
+<<<<<<< HEAD
+=======
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
+>>>>>>> e7e0098 (Add Register logic, add authorize logic to GroupsController.)
 builder.Services.AddAuthorization();
 
 // Add services to the container.

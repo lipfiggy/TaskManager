@@ -1,34 +1,26 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace TaskManagerModels
 {
-    public class User
+    public class UserRegisterModel
     {
-        public Guid Id { get; set; }
-
         [Required]
         public string FirstName { get; set; }
 
         public string LastName { get; set; }
 
-        [Required]
         [DataType(DataType.EmailAddress)]
         public string Email { get; set; }
+
 
         [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; }
-
-        [Required]
         public string Role { get; set; }
-        public ICollection<GroupUser> GroupUsers { get; set; } = null!;
-
     }
-}
-
-public static class RoleType
-{
-    public static readonly string Admin = "admin";
-    public static readonly string User = "user";
 }
