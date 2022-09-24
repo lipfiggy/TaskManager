@@ -79,7 +79,6 @@ namespace TaskManagerWebApi.Controllers
             {
                 return BadRequest();
             }
-            user.Role = RoleType.User;
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
