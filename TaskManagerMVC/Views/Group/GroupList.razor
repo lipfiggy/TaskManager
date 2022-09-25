@@ -1,0 +1,47 @@
+﻿@page "/dashboard"
+@inject HttpClient HttpClient
+@using TaskManagerModels
+
+<div class="row">
+    <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+        <div class="row">
+            <div class="col"><h3>Groups</h3></div>
+            <div class="col"></div>
+        </div>
+
+        <div class="row">
+            @if (Groups.Any())
+            {
+                @foreach (var group in Groups)
+                {
+                    <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4 mh-25 mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">@group.Caption</h5>
+                                <p class="card-text">@group.Description.Substring(0, 80) ...</p>
+                            </div>
+                        </div>
+                }
+            }
+            else
+            {
+                <p>No groups available</p>
+            }
+        </div>
+    </div>
+
+</div>
+
+@code {
+    private List<Group> Groups = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Groups = await GetGroups();
+    }
+
+    async Task<List<Group>> GetGroups()
+    {
+        return await HttpClient.GetFromJsonAsync<List<Group>>("api/Groups");
+    }
+
+}
