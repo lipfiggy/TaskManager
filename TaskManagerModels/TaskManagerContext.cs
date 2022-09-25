@@ -16,7 +16,7 @@ namespace TaskManagerModels
         {
 
             //Database.EnsureDeleted();
-            //Database.EnsureCreated();
+            Database.EnsureCreated();
 
         }
 

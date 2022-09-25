@@ -24,8 +24,8 @@ namespace TaskManagerWebApi.Controllers
         [HttpGet]
         public async Task<ActionResult<User>> GetAuthorizedUser()
         {
-            return await _appCache.GetOrAddAsync<ActionResult<User>>("authorizedUser", async entry =>
-            {
+            //return await _appCache.GetOrAddAsync<ActionResult<User>>("authorizedUser", async entry =>
+            //{
                 var identity = HttpContext.User.Identity as ClaimsIdentity;
                 if (identity == null)
                 {
@@ -34,12 +34,12 @@ namespace TaskManagerWebApi.Controllers
                 var user = await _context.Users.FindAsync(Guid.Parse(identity.Claims.FirstOrDefault(claim => claim.Type == "Id").Value));
                 if (user == null)
                 {
-                    return BadRequest();
+                    return NotFound("Registrated user wasn't found");
                 }
 
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
+                //entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
                 return Ok(user);
-            });
+            //});
         }
 
         // GET: api/Users/5
@@ -53,7 +53,7 @@ namespace TaskManagerWebApi.Controllers
 
                 if (user == null)
                 {
-                    return NotFound();
+                    return NotFound("User wasn't found");
                 }
 
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30);
@@ -79,23 +79,6 @@ namespace TaskManagerWebApi.Controllers
             }
         
             return NoContent();
-        }
-        
-        // POST: api/Users
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [AllowAnonymous]
-        [HttpPost]
-        public async Task<ActionResult<User>> RegisterUser(User user)
-        {
-            if(!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-        
-            return CreatedAtAction("GetUser", new { id = user.Id }, user);
         }
 
         // DELETE: api/Users/5

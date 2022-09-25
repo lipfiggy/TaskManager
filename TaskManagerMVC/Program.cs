@@ -1,8 +1,12 @@
+using Flurl.Http.Configuration;
 using Microsoft.EntityFrameworkCore;
 using TaskManagerModels;
 using TaskManagerMVC.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddSingleton<IFlurlClientFactory, PerBaseUrlFlurlClientFactory>();
 
 builder.Services.AddDbContext<TaskManagerContext>(option => option.UseSqlServer(
     builder.Configuration.GetConnectionString("LocalConnection")));
