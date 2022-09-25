@@ -22,4 +22,8 @@
     <ProjectReference Include="..\TaskManagerWebApi\TaskManagerWebApi.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Views\Новая папка\" />
+  </ItemGroup>
+
 </Project>
