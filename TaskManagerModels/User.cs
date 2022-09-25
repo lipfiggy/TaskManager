@@ -29,6 +29,6 @@ namespace TaskManagerModels
 
 public static class RoleType
 {
-    public static readonly string Admin = "admin";
-    public static readonly string User = "user";
+    public const string Admin = "admin";
+    public const string User = "user";
 }

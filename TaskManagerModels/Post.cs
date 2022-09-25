@@ -8,7 +8,7 @@ namespace TaskManagerModels
         [Required]
         public string Caption { get; set; }
         public string Description { get; set; }
-        public PostStatus Status { get; set; }
+        public string Status { get; set; }
         [Required]
         public DateTime Created { get; set; }
         public DateTime Deadline { get; set; }
@@ -16,11 +16,10 @@ namespace TaskManagerModels
         public Group Group { get; set; }
     }
 
-    public enum PostStatus
+    public class PostStatus
     {
-        Done,
-        NotDone,
-        Deleted
+        public const string done = "done";
+        public const string inProcess = "in processs";
     }
 }
 

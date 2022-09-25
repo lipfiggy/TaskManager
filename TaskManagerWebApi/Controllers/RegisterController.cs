@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 
@@ -29,6 +30,9 @@ namespace TaskManagerWebApi.Controllers
 
             if (!userRegister.Role.Equals(RoleType.Admin) && !userRegister.Role.Equals(RoleType.User))
                 return BadRequest("Role must be 'user' or 'admin'");
+
+            if (_context.Users.Where(user => user.Email == userRegister.Email).Any())
+                return BadRequest("User with this email already exists");
 
             var newUser = new User()
             {

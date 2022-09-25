@@ -28,12 +28,14 @@ namespace TaskManagerMVC.Controllers
             {
                 using(HttpClient client = new HttpClient())
                 {
-                    client.BaseAddress = new Uri(_config["WebApiLink"]);
+                    client.BaseAddress = new Uri(_config[Constants.WebApiLink]);
                     var responseTask = await client.PostAsJsonAsync<UserLoginModel>("login", loginModel);
 
                     if (responseTask.IsSuccessStatusCode)
                     {
                         var token = responseTask.Content.ReadAsStringAsync().Result;
+                        Response.Cookies.Append(Constants.UserJWT, token, new CookieOptions { HttpOnly = true, 
+                                                                                     SameSite = SameSiteMode.Strict });
                         //remember token
                         //call groups get method
                     }
@@ -43,7 +45,7 @@ namespace TaskManagerMVC.Controllers
                     }
 
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Groups");
             }
             return View();
         }
