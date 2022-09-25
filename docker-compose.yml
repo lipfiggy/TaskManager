@@ -1,0 +1,14 @@
+version: '3.4'
+
+services:
+  taskmanagerwebapi:
+    image: ${DOCKER_REGISTRY-}taskmanagerwebapi
+    build:
+      context: .
+      dockerfile: TaskManagerWebApi/Dockerfile
+  taskmanagermvc:
+    build:
+      context: .
+      dockerfile: TaskManagerMVC/Dockerfile
+    ports:
+      - "8080:80"
