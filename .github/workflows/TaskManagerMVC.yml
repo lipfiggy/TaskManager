@@ -2,7 +2,7 @@ name: Build and deploy .NET Core app to Linux WebApp TaskManagerMVC
 on:
   push:
     branches:
-    - BlobServices
+    - master
 env:
   AZURE_WEBAPP_NAME: TaskManagerMVC
   AZURE_WEBAPP_PACKAGE_PATH: TaskManagerMVC/publish
