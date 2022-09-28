@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskManagerModels", "TaskMa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskManagerMVC", "TaskManagerMVC\TaskManagerMVC.csproj", "{6101C53C-6004-485A-A07B-19222625C0DB}"
 EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{28DC8D15-3971-460B-9D08-C039EC3F3CBC}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,10 +27,6 @@ Global
 		{6101C53C-6004-485A-A07B-19222625C0DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6101C53C-6004-485A-A07B-19222625C0DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6101C53C-6004-485A-A07B-19222625C0DB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{28DC8D15-3971-460B-9D08-C039EC3F3CBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{28DC8D15-3971-460B-9D08-C039EC3F3CBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{28DC8D15-3971-460B-9D08-C039EC3F3CBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{28DC8D15-3971-460B-9D08-C039EC3F3CBC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
