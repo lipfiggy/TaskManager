@@ -6,9 +6,11 @@ services:
     build:
       context: .
       dockerfile: TaskManagerWebApi/Dockerfile
+    ports:
+      - "63133:80"
   taskmanagermvc:
     build:
       context: .
       dockerfile: TaskManagerMVC/Dockerfile
     ports:
-      - "8080:80"
+      - "55000:80"
