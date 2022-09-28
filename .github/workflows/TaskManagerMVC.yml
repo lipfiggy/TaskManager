@@ -2,11 +2,11 @@ name: Build and deploy .NET Core app to Linux WebApp TaskManagerMVC
 on:
   push:
     branches:
-    - docker
+    - BlobServices
 env:
   AZURE_WEBAPP_NAME: TaskManagerMVC
   AZURE_WEBAPP_PACKAGE_PATH: TaskManagerMVC/publish
-  AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.TaskManagerMVC_13ad }}
+  AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.TaskManagerMVC_9f26 }}
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 6.0.x
   WORKING_DIRECTORY: TaskManagerMVC
