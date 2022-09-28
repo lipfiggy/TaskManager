@@ -1,18 +1,18 @@
-name: Build and deploy .NET Core app to Linux WebApp TaskManagerMVC
+name: Build and deploy .NET Core app to Windows WebApp TaskManagerMVCWin
 on:
   push:
     branches:
     - master
 env:
-  AZURE_WEBAPP_NAME: TaskManagerMVC
+  AZURE_WEBAPP_NAME: TaskManagerMVCWin
   AZURE_WEBAPP_PACKAGE_PATH: TaskManagerMVC/publish
-  AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.TaskManagerMVC_9f26 }}
+  AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.TaskManagerMVCWin_e768 }}
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 6.0.x
   WORKING_DIRECTORY: TaskManagerMVC
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
