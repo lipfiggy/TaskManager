@@ -4,11 +4,15 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
+using TaskManagerWebApi.Repositories;
+using TaskManagerWebApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<TaskManagerContext>(option => option.UseSqlServer(
     builder.Configuration.GetConnectionString("TaskManagerConnection")));
+
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -27,6 +31,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddTransient<AuthorizedUserRepository>();
+
+builder.Services.AddTransient<IPasswordHasher, PasswordHasherSHA256>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

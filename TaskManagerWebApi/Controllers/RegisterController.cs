@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 
 using System.Text;
 using TaskManagerModels;
+using TaskManagerWebApi.DTO;
 
 namespace TaskManagerWebApi.Controllers
 {
@@ -15,10 +16,12 @@ namespace TaskManagerWebApi.Controllers
     public class RegisterController : ControllerBase
     {
         private readonly TaskManagerContext _context;
+        private readonly IPasswordHasher _passwordHasher;
 
-        public RegisterController(TaskManagerContext context)
+        public RegisterController(TaskManagerContext context, IPasswordHasher passwordHasher)
         {
             _context = context;
+            _passwordHasher = passwordHasher;
         }
 
         [AllowAnonymous]
@@ -38,7 +41,7 @@ namespace TaskManagerWebApi.Controllers
             {
                 Id = Guid.NewGuid(),
                 Email = userRegister.Email,
-                Password = userRegister.Password,
+                Password = _passwordHasher.GetHashOfAPassword(userRegister.Password),
                 FirstName = userRegister.FirstName,
                 LastName = userRegister.LastName,
                 Role = userRegister.Role
@@ -47,7 +50,8 @@ namespace TaskManagerWebApi.Controllers
             await _context.SaveChangesAsync();
 
 
-            return Ok(newUser);
+            return Ok(new UserDTO { Id = newUser.Id, FirstName = newUser.FirstName, 
+                      LastName = newUser.LastName, Email = newUser.Email});
         }
 
     }

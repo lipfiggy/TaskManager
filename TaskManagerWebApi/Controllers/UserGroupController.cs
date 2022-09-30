@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Security.Principal;
 using TaskManagerModels;
+using TaskManagerWebApi.Repositories;
 
 namespace TaskManagerWebApi.Controllers
 {
@@ -12,35 +13,41 @@ namespace TaskManagerWebApi.Controllers
     [ApiController]
     public class UserGroupController : ControllerBase
     {
+        private readonly AuthorizedUserRepository _authorizedUserRepository;
         private readonly TaskManagerContext _context;
 
-        public UserGroupController(TaskManagerContext context)
+        public UserGroupController(TaskManagerContext context, AuthorizedUserRepository authorizedUserRepository)
         {
             _context = context;
+            _authorizedUserRepository = authorizedUserRepository;
         }
 
         [Authorize]
         [HttpPost("{groupId}")]
-        //refactor
         public async Task<ActionResult> JoinGroup(Guid groupId)
         {
-            Group group = await _context.Groups.FindAsync(groupId);
-            if (group == null)
-                return NotFound("Don't have group with this id");
-
-            var identity = HttpContext.User.Identity as ClaimsIdentity;
-
-            GroupUser groupUser = new GroupUser()
+            try
             {
-                Id = Guid.NewGuid(),
-                User = await _context.Users.FindAsync(Guid.Parse(identity.Claims.FirstOrDefault(claim => claim.Type == "Id").Value)),
-                Group = group,
-                IsCreator = false
-            };
-            _context.GroupUsers.Add(groupUser);
-            await _context.SaveChangesAsync();
+                Group group = await _context.Groups.FindAsync(groupId);
+                if (group == null)
+                    return NotFound("Don't have group with this id");
 
-            return Ok();
+                GroupUser groupUser = new GroupUser()
+                {
+                    Id = Guid.NewGuid(),
+                    User = await _context.Users.FindAsync(_authorizedUserRepository.GetAuthorizedUser().Id),
+                    Group = group,
+                    IsCreator = false
+                };
+                _context.GroupUsers.Add(groupUser);
+                await _context.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch(ArgumentException)
+            {
+                return NotFound("Authorized user was not found");
+            }
         }
     }
 }
