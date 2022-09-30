@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
+
+using Azure.Storage.Blobs;
+using TaskManagerWebApi.Services;
 using TaskManagerWebApi.Repositories;
 using TaskManagerWebApi;
 
@@ -11,6 +14,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<TaskManagerContext>(option => option.UseSqlServer(
     builder.Configuration.GetConnectionString("TaskManagerConnection")));
+
+builder.Services.AddSingleton(x=> new BlobServiceClient(builder.Configuration.GetValue<string>("AzureBlobStorageConnectionString")));
 
 builder.Services.AddHttpContextAccessor();
 
