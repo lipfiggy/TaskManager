@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TaskManagerModels;
+using TaskManagerWebApi.Repositories;
+using TaskManagerWebApi.DTO;
 
 namespace TaskManagerWebApi.Controllers
 {
@@ -11,43 +13,38 @@ namespace TaskManagerWebApi.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
+        private readonly AuthorizedUserRepository _authorizedUserRepository;
         private readonly TaskManagerContext _context;
         private readonly IAppCache _appCache;
 
-        public UsersController(TaskManagerContext context, IAppCache appCache)
+        public UsersController(TaskManagerContext context, IAppCache appCache, AuthorizedUserRepository authorizedUserRepository)
         {
             _context = context;
             _appCache = appCache;
+            _authorizedUserRepository = authorizedUserRepository;
         }
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<User>> GetAuthorizedUser()
+        public async Task<ActionResult<UserDTO>> GetAuthorizedUserInfo()
         {
-            //return await _appCache.GetOrAddAsync<ActionResult<User>>("authorizedUser", async entry =>
-            //{
-                var identity = HttpContext.User.Identity as ClaimsIdentity;
-                if (identity == null)
-                {
-                    return BadRequest();
-                }
-                var user = await _context.Users.FindAsync(Guid.Parse(identity.Claims.FirstOrDefault(claim => claim.Type == "Id").Value));
-                if (user == null)
-                {
-                    return NotFound("Registrated user wasn't found");
-                }
-
-                //entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
+            try
+            {
+                var user = _authorizedUserRepository.GetAuthorizedUser();
                 return Ok(user);
-            //});
+            }
+            catch (ArgumentException)
+            {
+                return NotFound("Authorized user was not found");
+            }
         }
 
-        // GET: api/Users/5
+        //with caching
         [Authorize]
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(Guid id)
+        public async Task<ActionResult<UserDTO>> GetUserInfo(Guid id)
         {
-            return await _appCache.GetOrAddAsync<ActionResult<User>>("user", async entry =>
+            return await _appCache.GetOrAddAsync<ActionResult<UserDTO>>("userById", async entry =>
             {
                 var user = await _context.Users.FindAsync(id);
 
@@ -57,45 +54,68 @@ namespace TaskManagerWebApi.Controllers
                 }
 
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30);
-                return Ok(user);
+                return Ok(new UserDTO { Id = user.Id, FirstName = user.FirstName, LastName = user.LastName, Email = user.Email });
             });
         }
-        
-        // PUT: api/Users/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
         [Authorize]
         [HttpPut]
-        public async Task<IActionResult> PutUser(User user)
+        public async Task<ActionResult<UserDTO>> EditAuthorizedUserInfo(User user)
         {
-            _context.Entry(user).State = EntityState.Modified;
-        
             try
             {
-                await _context.SaveChangesAsync();
+                if (!IsRoleRight(user.Role))
+                    return BadRequest("Role must be 'user' or 'admin'");
+                var authorizedUser = _authorizedUserRepository.GetAuthorizedUser();
+                _context.Entry(user).State = EntityState.Detached;
+
+                if (authorizedUser.Id != user.Id)
+                {
+                    return BadRequest("Can not change personal data of other users");
+                }
+
+                _context.Entry(user).State = EntityState.Modified;
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    throw;
+                }
+
+                return Ok(new UserDTO { Id = user.Id, FirstName = user.FirstName, LastName = user.LastName, Email = user.Email });
             }
-            catch (DbUpdateConcurrencyException)
+            catch (ArgumentException)
             {
-                throw;
+                return NotFound("Authorized user was not found");
             }
-        
-            return NoContent();
         }
 
-        // DELETE: api/Users/5
+        
         [Authorize]
         [HttpDelete]
-        public async Task<IActionResult> DeleteUser()
+        public async Task<IActionResult> DeleteAuthorizedUser()
         {
-            var user = (await GetAuthorizedUser()).Value;
-            if (user == null)
+            try
             {
-                return NotFound();
+                var user = _authorizedUserRepository.GetAuthorizedUser();
+
+                _context.Users.Remove(_context.Users.Find(user.Id));
+                await _context.SaveChangesAsync();
+
+                return NoContent();
             }
-        
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-        
-            return NoContent();
+            catch(ArgumentException)
+            {
+                return NotFound("Authorized user was not found");
+            }
+        }
+
+        private bool IsRoleRight(string role)
+        {
+            return role == "user" || role == "admin";
         }
 
         //

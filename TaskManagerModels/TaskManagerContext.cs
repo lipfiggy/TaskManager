@@ -26,13 +26,5 @@ namespace TaskManagerModels
                 .Property(x => x.Role)
                 .HasDefaultValue(RoleType.User);
         }
-        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        //{
-        //    if (!optionsBuilder.IsConfigured)
-        //    {
-        //        optionsBuilder.UseSqlServer("Server=tcp:taskmanagerdev.database.windows.net,1433;Initial Catalog=TaskManager;Persist Security Info=False;User ID=lipfiggy;Password=12341234Yv;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;");
-        //    }
-        //
-        //}
     }
 }

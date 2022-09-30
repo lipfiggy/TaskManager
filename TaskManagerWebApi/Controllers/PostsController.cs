@@ -8,7 +8,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using TaskManagerModels;
+using TaskManagerWebApi.Repositories;
 
 namespace TaskManagerWebApi.Controllers
 {
@@ -17,40 +19,44 @@ namespace TaskManagerWebApi.Controllers
     [ApiController]
     public class PostsController : ControllerBase
     {
+        private readonly AuthorizedUserRepository _authorizedUserRepository;
         private readonly TaskManagerContext _context;
         private readonly IAppCache _appCache;
 
-        public PostsController(TaskManagerContext context, IAppCache appCache)
+        public PostsController(TaskManagerContext context, IAppCache appCache, AuthorizedUserRepository authorizedUserRepository)
         {
             _context = context;
             _appCache = appCache;
+            _authorizedUserRepository = authorizedUserRepository;
         }
 
         [HttpGet]
-        //refactor
+        //with caching
         public async Task<ActionResult<IEnumerable<Post>>> GetUsersPosts()
         {
-            var identity = HttpContext.User.Identity as ClaimsIdentity;
-            User authorizedUser = await _context.Users.FindAsync(Guid.Parse(identity.Claims.FirstOrDefault(claim => claim.Type == "Id").Value));
-
-            if(authorizedUser == null)
-            {
-                return BadRequest();
-            }
-            return await _appCache.GetOrAddAsync("usersPosts",
+            return await _appCache.GetOrAddAsync<ActionResult<IEnumerable<Post>>>("usersPosts",
                 async entry =>
                 {
-                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
-                    return  _context.PostUsers.Include(userPost => userPost.Post)
-                            .Where(postUser => postUser.User.Id == authorizedUser.Id).Select(postUser => postUser.Post).ToList();
-                });//?
+                    try
+                    {
+                        var authorizedUser = _authorizedUserRepository.GetAuthorizedUser();
+                        entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
+                        return _context.PostUsers.Include(userPost => userPost.Post)
+                                .Where(postUser => postUser.User.Id == authorizedUser.Id).Select(postUser => postUser.Post).ToList();
+                    }
+                    catch(ArgumentException)
+                    {
+                        return NotFound("Authorized user was not found");
+                    }
+                });
         }
 
         // GET: api/Posts
         [HttpGet("group/{groupId}")]
         public async Task<ActionResult<IEnumerable<Post>>> GetPostsForGroup(Guid groupId)
         {
-            if (_context.Groups.FindAsync(groupId) == null)
+            var group = await _context.Groups.FindAsync(groupId);
+            if (group == null)
                 return NotFound("Group with this id doesn't exist");
 
             return await _context.Posts.Where(post => post.Group.Id == groupId).ToListAsync();
@@ -58,7 +64,7 @@ namespace TaskManagerWebApi.Controllers
 
         // GET: api/Posts/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Post>> GetPost(Guid id)
+        public async Task<ActionResult<Post>> GetPostInfo(Guid id)
         {
             var post = await _context.Posts.FindAsync(id);
 
@@ -71,12 +77,17 @@ namespace TaskManagerWebApi.Controllers
         }
 
         [HttpPut("status/{id}")]
-        public async Task<IActionResult> ChangePostStatus(Guid id,Post post)
+        public async Task<ActionResult<Post>> ChangePostStatus(Guid id,Post post)
         {
             if (id != post.Id)
                 return BadRequest();
 
-            if(_context.Posts.Where(_post => _post.Caption == post.Caption && 
+            if (!IsStatusRight(post.Status))
+            {
+                return BadRequest("Status can be only in process or done");
+            }
+
+            if (_context.Posts.Where(_post => _post.Caption == post.Caption && 
                              _post.Description == post.Description && post.Deadline == _post.Deadline
                              && _post.Created == post.Created).Count() == 0)
                 return BadRequest("Employees can change only status");
@@ -101,17 +112,22 @@ namespace TaskManagerWebApi.Controllers
                     throw;
                 }
             }
-            return NoContent();
+            return post;
         }
         // PUT: api/Posts/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = RoleType.Admin)]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPost(Guid id, Post post)
+        public async Task<ActionResult<Post>> PutPost(Guid id, Post post)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest();
+            }
+
+            if (!IsStatusRight(post.Status))
+            {
+                return BadRequest("Status can be only in process or done");
             }
 
             if (id != post.Id)
@@ -137,7 +153,7 @@ namespace TaskManagerWebApi.Controllers
                 }
             }
 
-            return NoContent();
+            return post;
         }
 
         // POST: api/Posts
@@ -150,18 +166,25 @@ namespace TaskManagerWebApi.Controllers
             {
                 return BadRequest();
             }
-            if(_context.Posts.Where(p => p.Group == post.Group && p.Caption == post.Caption).Count() != 0)
+
+            if (!IsStatusRight(post.Status))
             {
-                return BadRequest("Post with this caption already exists");
+                return BadRequest("Status can be only in process or done");
             }
+
             Group group = await _context.Groups.FindAsync(groupId);
             if (group == null)
                 return BadRequest();
             post.Group = group;
+
+            if (_context.Posts.Any(p => p.Group == post.Group && p.Caption == post.Caption))
+            {
+                return BadRequest("Post with this caption already exists");
+            }
             _context.Posts.Add(post);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetPost", new { id = post.Id }, post);
+            return CreatedAtAction("GetPostInfo", new { id = post.Id }, post);
         }
 
         // DELETE: api/Posts/5
@@ -179,6 +202,11 @@ namespace TaskManagerWebApi.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        private bool IsStatusRight(string status)
+        {
+            return status == "in process" || status == "done";
         }
 
         private bool PostExists(Guid id)
