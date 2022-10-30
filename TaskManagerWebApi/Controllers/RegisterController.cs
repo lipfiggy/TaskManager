@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-
-
+using System.Net;
+using System.Net.Mail;
 using System.Text;
 using TaskManagerModels;
 using TaskManagerWebApi.DTO;
@@ -49,9 +49,31 @@ namespace TaskManagerWebApi.Controllers
             _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
 
-
+            TrySendConfirmationEmail(userRegister.Email,userRegister.FirstName);
             return Ok(new UserDTO { Id = newUser.Id, FirstName = newUser.FirstName, 
                       LastName = newUser.LastName, Email = newUser.Email});
+        }
+
+
+        private void TrySendConfirmationEmail(string userEmail, string userName)
+        {
+            string senderEmail = "MyTaskManager@gmail.com";
+            string subject = "Registration confirmation";
+            string body = $"{userName}, you have registered successfully!";
+            MailMessage message = new MailMessage(senderEmail, userEmail, subject, body);
+            SmtpClient client = new SmtpClient("smtp.gmail.com", 587);
+            NetworkCredential myCredentials = new NetworkCredential("nedavnaia@gmail.com", "hbbzxzzpnrhxkzms");
+            client.EnableSsl = true;
+            client.UseDefaultCredentials = false;
+            client.Credentials = myCredentials;
+            try
+            {
+                client.Send(message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
     }

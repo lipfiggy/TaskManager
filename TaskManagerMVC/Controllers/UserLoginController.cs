@@ -9,12 +9,6 @@ namespace TaskManagerMVC.Controllers
 {
     public class UserLoginController : Controller
     {
-        IConfiguration _config;
-
-        public UserLoginController(IConfiguration configuration)
-        {
-            _config = configuration;
-        }
         public IActionResult Index()
         {
             return View();
@@ -28,12 +22,12 @@ namespace TaskManagerMVC.Controllers
             {
                 using(HttpClient client = new HttpClient())
                 {
-                    client.BaseAddress = new Uri(_config[Constants.WebApiLink]);
+                    client.BaseAddress = new Uri(Constants.WebApiLink);
                     var responseTask = await client.PostAsJsonAsync<UserLoginModel>("login", loginModel);
 
                     if (responseTask.IsSuccessStatusCode)
                     {
-                        var token = responseTask.Content.ReadAsStringAsync().Result;
+                        var token = responseTask.Content.ReadAsStringAsync().Result.Replace("{\"token\":\"", "").Replace("\"}","");
                         Response.Cookies.Append(Constants.UserJWT, token, new CookieOptions { HttpOnly = true, 
                                                                                      SameSite = SameSiteMode.Strict });
                         //remember token

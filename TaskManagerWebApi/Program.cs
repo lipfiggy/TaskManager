@@ -13,7 +13,7 @@ using TaskManagerWebApi;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<TaskManagerContext>(option => option.UseSqlServer(
-    builder.Configuration.GetConnectionString("TaskManagerConnection")));
+    builder.Configuration.GetConnectionString("LocalConnection")));
 
 builder.Services.AddSingleton(x=> new BlobServiceClient(builder.Configuration.GetValue<string>("AzureBlobStorageConnectionString")));
 
