@@ -13,15 +13,13 @@ namespace TaskManagerMVC.Controllers
 {
     public class GroupsController : Controller
     {
-        IConfiguration _config;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IFlurlClient _flurlClient;
 
-        public GroupsController(IConfiguration config, IHttpContextAccessor httpContextAccessor,
+        public GroupsController(IHttpContextAccessor httpContextAccessor,
             IFlurlClientFactory flurlClientFactory)
         {
-            _config = config; 
-            _flurlClient = flurlClientFactory.Get(_config[Constants.WebApiLink]);
+            _flurlClient = flurlClientFactory.Get(Constants.WebApiLink);
             _httpContextAccessor = httpContextAccessor;
             var token = httpContextAccessor.HttpContext.Request.Cookies[Constants.UserJWT];
             if (!string.IsNullOrWhiteSpace(token))

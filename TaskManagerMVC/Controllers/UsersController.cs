@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using TaskManagerModels;
+
 
 namespace TaskManagerMVC.Controllers
 {
@@ -45,22 +42,31 @@ namespace TaskManagerMVC.Controllers
         // GET: Users/Create
         public IActionResult Create()
         {
+            SelectList roles = new SelectList(new List<string>() { "user", "admin" });
+            ViewBag.Roles = roles;
             return View();
         }
 
         // POST: Users/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
+        [Microsoft.AspNetCore.Mvc.HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,FirstName,LastName,Email,Password,Role")] User user)
+        public async Task<IActionResult> Create([Bind("Id,FirstName,LastName,Email,Password,Role")] UserRegisterModel user)
         {
             if (ModelState.IsValid)
             {
-                user.Id = Guid.NewGuid();
-                _context.Add(user);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                using (HttpClient client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(Constants.WebApiLink);
+                    var response = await client.PostAsJsonAsync<UserRegisterModel>("register", user);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        ModelState.AddModelError(string.Empty, "Error occured"); 
+                    }
+                }
+                return RedirectToAction("Index","UserLogin");
             }
             return View(user);
         }
@@ -84,7 +90,7 @@ namespace TaskManagerMVC.Controllers
         // POST: Users/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
+        [Microsoft.AspNetCore.Mvc.HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, [Bind("Id,FirstName,LastName,Email,Password,Role")] User user)
         {
@@ -135,7 +141,7 @@ namespace TaskManagerMVC.Controllers
         }
 
         // POST: Users/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [Microsoft.AspNetCore.Mvc.HttpPost, Microsoft.AspNetCore.Mvc.ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
